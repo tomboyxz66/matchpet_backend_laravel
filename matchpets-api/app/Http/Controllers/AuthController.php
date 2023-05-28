@@ -14,8 +14,8 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $validationRules = [
-            'username' => 'required|string|max:255|unique:Users',
-            'email' => 'required|email|max:255|unique:Users',
+            'username' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255',
             'password' => 'required|string',
             'name' => 'required|string|max:255',
             'species' => 'required|string|max:255',
@@ -28,16 +28,19 @@ class AuthController extends Controller
 
         // Check for validation errors
         if ($validator->fails()) {
+            // return response()->json([
+            //     'errors' => $validator->errors(),
+            // ], 400);
             return response()->json([
-                'errors' => $validator->errors(),
-            ], 400);
+                'message' => 'สมัครสมาชิกไม่สำเร็จ.',
+            ]);
         }
 
         // Retrieve user data from the request
         $userData = $request->only('username', 'email', 'password');
 
         // Retrieve pet data from the request
-        $petData = $request->only('name', 'species', 'breed', 'age');
+        $petData = $request->only('name', 'species', 'gender', 'age');
         //bcrypt password
         $userData['password'] = Hash::make($userData['password']);
 
