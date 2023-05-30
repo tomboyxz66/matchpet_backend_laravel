@@ -46,19 +46,19 @@ class MatchController extends Controller
         $isChecked = $request->input('is_checked');
 
         // Check if the match already exists in the Matches table
-        $existingMatch = DB::table('matches')
-            ->where(function ($query) use ($petId1, $petId2) {
-                $query->where('pet1_id', $petId1)->where('pet2_id', $petId2);
-            })
-            ->orWhere(function ($query) use ($petId1, $petId2) {
-                $query->where('pet1_id', $petId2)->where('pet2_id', $petId1);
-            })
-            ->first();
-        if ($existingMatch) {
-            return response()->json([
-                'message' => "จับคู่ไปแล้ว",
-            ]);
-        }
+        // $existingMatch = DB::table('matches')
+        //     ->where(function ($query) use ($petId1, $petId2) {
+        //         $query->where('pet1_id', $petId1)->where('pet2_id', $petId2);
+        //     })
+        //     ->orWhere(function ($query) use ($petId1, $petId2) {
+        //         $query->where('pet1_id', $petId2)->where('pet2_id', $petId1);
+        //     })
+        //     ->first();
+        // if ($existingMatch) {
+        //     return response()->json([
+        //         'message' => "จับคู่ไปแล้ว",
+        //     ]);
+        // }
         $currentDate = Carbon::now();
         DB::table('matches')->insert([
             'pet1_id' => $petId1,
