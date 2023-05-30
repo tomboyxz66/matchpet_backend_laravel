@@ -21,6 +21,7 @@ Route::post('/search', [UserController::class, 'show']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/pets', [PetController::class, 'pets']);
+Route::post('/getPets', [PetController::class, 'getPets']);
 Route::post('/insertPets', [UserController::class, 'insertPets']);
 Route::post('/matchPets', [MatchController::class, 'matchPets']);
 

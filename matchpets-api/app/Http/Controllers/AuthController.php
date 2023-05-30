@@ -77,6 +77,7 @@ class AuthController extends Controller
                 'message' => 'เข้าสู่ระบบสำเร็จ',
                 'data' => [
                     'users' => [
+                        'user_id' => $user->user_id,
                         'username' => $user->username,
                         'email' => $user->email,
                         'first_name' => $user->first_name,
