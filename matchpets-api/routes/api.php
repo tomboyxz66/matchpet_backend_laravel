@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ChatMsgController;
 use App\Http\Controllers\MatchController;
 use App\Http\Controllers\PetController;
 use App\Http\Controllers\UserController;
@@ -24,6 +25,8 @@ Route::post('/pets', [PetController::class, 'pets']);
 Route::post('/getPets', [PetController::class, 'getPets']);
 Route::post('/insertPets', [UserController::class, 'insertPets']);
 Route::post('/matchPets', [MatchController::class, 'matchPets']);
+Route::post('/getMsg', [ChatMsgController::class, 'getMsg']);
+Route::post('/sendMsg', [ChatMsgController::class, 'sendMsg']);
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
