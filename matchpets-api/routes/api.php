@@ -22,11 +22,16 @@ Route::post('/search', [UserController::class, 'show']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/pets', [PetController::class, 'pets']);
-Route::post('/getPets', [PetController::class, 'getPets']);
+Route::post('/getAllPets', [PetController::class, 'getAllPets']);
 Route::post('/insertPets', [UserController::class, 'insertPets']);
-Route::post('/matchPets', [MatchController::class, 'matchPets']);
-Route::post('/getMsg', [ChatMsgController::class, 'getMsg']);
-Route::post('/sendMsg', [ChatMsgController::class, 'sendMsg']);
+Route::post('/createMatch', [MatchController::class, 'createMatch']);
+Route::post('/getMatch', [MatchController::class, 'getMatch']);
+Route::post('/sendMessage', [ChatMsgController::class, 'sendMessage']);
+Route::post('/getMessage', [ChatMsgController::class, 'getMessages']);
+Route::post('/acceptRequest', [MatchController::class, 'acceptRequest']);
+Route::post('/rejectRequest', [MatchController::class, 'rejectRequest']);
+Route::post('/getAcceptedFriends', [MatchController::class, 'getAcceptedFriends']);
+
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
