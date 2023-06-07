@@ -14,8 +14,8 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $validationRules = [
-            'username' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255',
+            'username' => 'required|string|max:255|unique:users',
+            'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string',
             'name' => 'required|string|max:255',
             'species' => 'required|string|max:255',
@@ -28,20 +28,32 @@ class AuthController extends Controller
 
         // Check for validation errors
         if ($validator->fails()) {
-            // return response()->json([
-            //     'errors' => $validator->errors(),
-            // ], 400);
-            return response()->json([
-                'message' => 'สมัครสมาชิกไม่สำเร็จ.',
-            ]);
+            $errors = $validator->errors();
+
+            // Check if username is duplicated
+            if ($errors->has('username')) {
+                return response()->json([
+                    'message' => 'ชื่อผู้ใช้ถูกใช้งานแล้ว',
+                ], 400);
+            }
+
+            // Check if email is duplicated
+            if ($errors->has('email')) {
+                return response()->json([
+                    'message' => 'อีเมล์ถูกใช้งานแล้ว',
+                ], 400);
+            }
+
         }
+
 
         // Retrieve user data from the request
         $userData = $request->only('username', 'email', 'password');
 
         // Retrieve pet data from the request
         $petData = $request->only('name', 'species', 'gender', 'age');
-        //bcrypt password
+
+        // Hash the password
         $userData['password'] = Hash::make($userData['password']);
 
         // Insert user data into the Users table
@@ -55,6 +67,8 @@ class AuthController extends Controller
             'message' => 'สมัครสมาชิกสำเร็จ.',
         ]);
     }
+
+
     public function login(Request $request)
     {
         // Validate the request data

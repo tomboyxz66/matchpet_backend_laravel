@@ -37,8 +37,7 @@ class MatchController extends Controller
 
     public function getMatch(Request $request)
     {
-        $user1Id = $request->input('user1_id');
-        $user2Id = $request->input('user2_id');
+        $userId = $request->input('user_id');
 
         $matches = DB::table('Matches')
             ->select('Matches.*', 'u1.username as user1_username', 'u1.first_name as user1_first_name', 'u2.username as user2_username', 'u2.first_name as user2_first_name', 'p1.name as pet1_name', 'p2.name as pet2_name')
@@ -46,16 +45,10 @@ class MatchController extends Controller
             ->join('Users as u2', 'Matches.user2_id', '=', 'u2.user_id')
             ->join('Pets as p1', 'Matches.pet1_id', '=', 'p1.pet_id')
             ->join('Pets as p2', 'Matches.pet2_id', '=', 'p2.pet_id')
-            ->where(function ($query) use ($user1Id, $user2Id) {
-                $query->where([
-                    ['Matches.user1_id', $user1Id],
-                    ['Matches.user2_id', $user2Id],
-                ])->orWhere([
-                        ['Matches.user1_id', $user2Id],
-                        ['Matches.user2_id', $user1Id],
-                    ]);
+            ->where(function ($query) use ($userId) {
+                $query->where('Matches.user2_id', $userId);
+                    // ->orWhere('Matches.user2_id', $userId);
             })
-            ->where('Matches.match_status', '=', 'Pending')
             ->orderBy('Matches.match_date', 'desc')
             ->get();
 
@@ -69,7 +62,7 @@ class MatchController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Match',
+            'message' => 'Matches',
             'data' => $matches,
         ], 200);
     }
@@ -143,10 +136,11 @@ class MatchController extends Controller
             ->get();
         $res = $friends->where('user_id', "!=", $userId)
             ->where('pet_id', "!=", $petId);
+
         return response()->json([
             'status' => 'success',
             'message' => 'Accepted friends',
-            'data' => $res,
+            'data' => $res->values(),
 
         ], 200);
     }

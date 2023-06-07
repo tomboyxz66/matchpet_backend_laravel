@@ -73,17 +73,22 @@ class PetController extends Controller
 
         foreach ($pets as $pet) {
             $matched = DB::table('Matches')
-                ->where('pet1_id', $pet->pet_id)
-                ->orWhere('pet2_id', $pet->pet_id)
+                ->where('pet2_id', $pet->pet_id)
+                // ->orWhere('pet2_id', $pet->pet_id)
+                // ->where('is_checked',false)
+                // ->where('match_status','Accepted')
+                // ->where('pet2_id', "!=", $petId)
                 ->exists();
 
             $pet->is_matched = $matched;
         }
+        $data = $pets->where('is_matched', '!=', true);
 
         return response()->json([
             'status' => 'success',
             'message' => 'All pets',
-            'data' => $pets,
+            'data' => $data->values(),
+
         ], 200);
     }
 }
