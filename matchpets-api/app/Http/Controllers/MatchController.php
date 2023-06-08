@@ -47,7 +47,7 @@ class MatchController extends Controller
             ->join('Pets as p2', 'Matches.pet2_id', '=', 'p2.pet_id')
             ->where(function ($query) use ($userId) {
                 $query->where('Matches.user2_id', $userId);
-                    // ->orWhere('Matches.user2_id', $userId);
+                // ->orWhere('Matches.user2_id', $userId);
             })
             ->orderBy('Matches.match_date', 'desc')
             ->get();
@@ -59,11 +59,11 @@ class MatchController extends Controller
                 'data' => null,
             ], 404);
         }
-
+        $res = $matches->where('match_status', 'Pending');
         return response()->json([
             'status' => 'success',
             'message' => 'Matches',
-            'data' => $matches,
+            'data' => $res,
         ], 200);
     }
     public function acceptRequest(Request $request)
@@ -119,6 +119,14 @@ class MatchController extends Controller
         $petId = $request->input('pet_id');
 
         $friends = DB::table('Matches')
+            ->where(function ($query) use ($userId) {
+                $query->where('Matches.user1_id', $userId)
+                    ->orWhere('Matches.user2_id', $userId);
+            })
+            ->where(function ($query) use ($petId) {
+                $query->where('Matches.pet1_id', $petId)
+                    ->orWhere('Matches.pet2_id', $petId);
+            })
             ->select('Users.user_id', 'Users.username', 'Users.email', 'Users.first_name', 'Users.last_name', 'Users.location', 'Pets.pet_id', 'Pets.name as pet_name', 'Pets.species', 'Pets.gender', 'Pets.age')
             ->join('Users', function ($join) use ($userId) {
                 $join->on('Matches.user1_id', '=', 'Users.user_id')
@@ -128,14 +136,11 @@ class MatchController extends Controller
                 $join->on('Matches.pet1_id', '=', 'Pets.pet_id')
                     ->orOn('Matches.pet2_id', '=', 'Pets.pet_id');
             })
-            ->where(function ($query) use ($userId) {
-                $query->where('Matches.user1_id', $userId)
-                    ->orWhere('Matches.user2_id', $userId);
-            })
             ->where('Matches.match_status', 'Accepted')
             ->get();
         $res = $friends->where('user_id', "!=", $userId)
             ->where('pet_id', "!=", $petId);
+
 
         return response()->json([
             'status' => 'success',
