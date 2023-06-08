@@ -19,10 +19,13 @@ use Illuminate\Support\Facades\Route;
 |
 */
 Route::post('/search', [UserController::class, 'show']);
+Route::post('/updateUser', [UserController::class, 'updateUser']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/pets', [PetController::class, 'pets']);
 Route::post('/getAllPets', [PetController::class, 'getAllPets']);
+Route::post('/createPet', [PetController::class, 'createPet']);
+Route::post('/deletePet', [PetController::class, 'deletePet']);
 Route::post('/insertPets', [UserController::class, 'insertPets']);
 Route::post('/createMatch', [MatchController::class, 'createMatch']);
 Route::post('/getMatch', [MatchController::class, 'getMatch']);

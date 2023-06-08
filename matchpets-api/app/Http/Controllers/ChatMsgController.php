@@ -14,20 +14,25 @@ class ChatMsgController extends Controller
         $receiverId = $request->input('receiver_id');
         $senderId = $request->input('sender_id');
         // ดึงข้อมูล message ทั้งหมดจากตาราง ChatMessages
-        $messages= DB::table('ChatMessages')
-                    ->where(function ($query) use ($senderId, $receiverId) {
-                        $query->where('sender_id', $senderId)
-                            ->where('receiver_id', $receiverId);
-                    })
-                    ->orWhere(function ($query) use ($senderId, $receiverId) {
-                        $query->where('sender_id', $receiverId)
-                            ->where('receiver_id', $senderId);
-                    })
-                    ->orderBy('timestamp', 'asc')
-                    ->get();
+        $messages = DB::table('ChatMessages')
+            ->where(function ($query) use ($senderId, $receiverId) {
+                $query->where('sender_id', $senderId)
+                    ->where('receiver_id', $receiverId);
+            })
+            ->orWhere(function ($query) use ($senderId, $receiverId) {
+                $query->where('sender_id', $receiverId)
+                    ->where('receiver_id', $senderId);
+            })
+            ->orderBy('timestamp', 'asc')
+            ->get();
 
         // ส่งข้อมูลกลับเป็น JSON response
-        return response()->json($messages);
+        return response()->json(
+            [
+                "status" => "success",
+                "data" => $messages
+            ]
+        );
     }
 
     public function sendMessage(Request $request)

@@ -20,6 +20,8 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'species' => 'required|string|max:255',
             'gender' => 'required|string|max:255',
+            'breed' => 'required|string|max:255',
+            'image' => 'required|string|max:255',
             'age' => 'required|integer',
         ];
 
@@ -46,12 +48,26 @@ class AuthController extends Controller
 
         }
 
+        if ($request->hasFile('image')) {
+            $petImage = $request->file('image');
+            $petImagePath = $petImage->store('pet_images', 'public');
+        }
+
+        // Create Pet
+        // $pet = DB::table('Pets')->insertGetId([
+        //     'name' => $validationRules['pet_name'],
+        //     'species' => $validationRules['pet_species'],
+        //     'gender' => $validationRules['pet_gender'],
+        //     'age' => $validationRules['pet_age'],
+        //     'pet_image' => $petImagePath,
+        //     'owner_id' => $user,
+        // ]);
 
         // Retrieve user data from the request
         $userData = $request->only('username', 'email', 'password');
 
         // Retrieve pet data from the request
-        $petData = $request->only('name', 'species', 'gender', 'age');
+        $petData = $request->only('name', 'species', 'gender', 'age', "breed");
 
         // Hash the password
         $userData['password'] = Hash::make($userData['password']);
@@ -60,7 +76,9 @@ class AuthController extends Controller
         $userId = DB::table('users')->insertGetId($userData);
 
         // Insert pet data into the Pets table
+        $petData['pet_image'] = $petImagePath;
         $petData['owner_id'] = $userId;
+
         DB::table('pets')->insert($petData);
 
         return response()->json([

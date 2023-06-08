@@ -91,4 +91,88 @@ class PetController extends Controller
 
         ], 200);
     }
+
+    public function createPet(Request $request)
+    {
+        $validatedData = $request->validate([
+            'name' => 'required',
+            'species' => 'required',
+            'gender' => 'required',
+            'age' => 'required|integer',
+            'pet_image' => 'required|image|max:2048',
+            'owner_id' => 'required|integer',
+
+        ]);
+        if ($request->hasFile('pet_image')) {
+            $petImage = $request->file('pet_image');
+            $petImagePath = $petImage->store('pet_images', 'public');
+        }
+
+        $pet = DB::table('Pets')->insertGetId([
+            'name' => $validatedData['name'],
+            'species' => $validatedData['species'],
+            'gender' => $validatedData['gender'],
+            'age' => $validatedData['age'],
+            'pet_image' => $petImagePath,
+            'owner_id' => $validatedData['owner_id'],
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Pet created successfully',
+            'data' => $pet,
+        ], 201);
+    }
+    public function deletePet(Request $request)
+    {
+        $petId = $request->input('pet_id');
+        $pet = DB::table('Pets')->where('pet_id', $petId)->first();
+
+        if (!$pet) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Pet not found',
+            ], 404);
+        }
+
+        DB::table('Pets')->where('pet_id', $petId)->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Pet deleted successfully',
+        ], 200);
+    }
+    public function uploadPetImage(Request $request)
+    {
+        $petId = $request->input('pet_id');
+        $validatedData = $request->validate([
+            'image' => 'required|image|max:2048',
+        ]);
+
+        $pet = DB::table('Pets')->where('pet_id', $petId)->first();
+        $validatedData = $request->validate([
+            'image' => 'required|image|max:2048',
+        ]);
+
+        if (!$pet) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Pet not found',
+            ], 404);
+        }
+
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $imagePath = $image->store('pet_images', 'public');
+
+            $pet->image_path = $imagePath;
+            $pet->save();
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Pet image uploaded successfully',
+        ], 200);
+    }
+
 }

@@ -26,41 +26,68 @@ class UserController extends Controller
             'data' => $user->username,
         ]);
     }
-    public function insertPets(Request $request)
+    // public function insertPets(Request $request)
+    // {
+    //     $validationRules = [
+    //         'username' => 'required',
+    //         'user_id' => 'required|integer',
+    //         'name' => 'required|string|max:255',
+    //         'species' => 'required|string|max:255',
+    //         'breed' => 'required|string|max:255',
+    //         'gender' => 'required|string|max:255',
+    //         'age' => 'required|integer',
+    //     ];
+
+    //     // Validate the request data
+    //     $validator = Validator::make($request->all(), $validationRules);
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'errors' => $validator->errors(),
+    //         ], 400);
+    //     }
+
+    //     // Retrieve pet data from the request
+    //     $petData = $request->only('name', 'species', 'gender', 'age');
+    //     $petData['owner_id'] = $request->input('user_id');
+    //     $user_id = $request->input('user_id');
+    //     $count = DB::table('pets')->where('owner_id', $user_id)->count();
+    //     if ($count >= 2) {
+    //         return response()->json([
+    //             'message' => "เพิ่มสัตว์เลี้ยงไม่สำเร็จ. เนื่องจากตอนนี้คนมีสัตว์เลี้ยงจำนวน $count",
+    //         ]);
+    //     }
+
+    //     DB::table('pets')->insert($petData);
+
+    //     return response()->json([
+    //         'message' => 'เพิ่มสัตว์เลี้ยงสำเร็จ.',
+    //     ]);
+    // }
+    public function updateUser(Request $request)
     {
-        $validationRules = [
-            'username' => 'required',
-            'user_id' => 'required|integer',
-            'name' => 'required|string|max:255',
-            'species' => 'required|string|max:255',
-            'gender' => 'required|string|max:255',
-            'age' => 'required|integer',
-        ];
+        $userId = $request->input('user_id');
+        $validatedData = $request->validate([
+            'email' => 'nullable',
+            'first_name' => 'nullable',
+            'last_name' => 'nullable',
+            'location' => 'nullable',
+        ]);
 
-        // Validate the request data
-        $validator = Validator::make($request->all(), $validationRules);
-        if ($validator->fails()) {
+        $user = DB::table('Users')->where('user_id', $userId)->first();
+
+        if (!$user) {
             return response()->json([
-                'errors' => $validator->errors(),
-            ], 400);
+                'status' => 'error',
+                'message' => 'User not found',
+            ], 404);
         }
 
-        // Retrieve pet data from the request
-        $petData = $request->only('name', 'species', 'gender', 'age');
-        $petData['owner_id'] = $request->input('user_id');
-        $user_id = $request->input('user_id');
-        $count = DB::table('pets')->where('owner_id', $user_id)->count();
-        if ($count >= 2) {
-            return response()->json([
-                'message' => "เพิ่มสัตว์เลี้ยงไม่สำเร็จ. เนื่องจากตอนนี้คนมีสัตว์เลี้ยงจำนวน $count",
-            ]);
-        }
-
-        DB::table('pets')->insert($petData);
+        DB::table('Users')->where('user_id', $userId)->update($validatedData);
 
         return response()->json([
-            'message' => 'เพิ่มสัตว์เลี้ยงสำเร็จ.',
-        ]);
+            'status' => 'success',
+            'message' => 'User updated successfully',
+        ], 200);
     }
 
 }
