@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -13,17 +14,27 @@ class AuthController extends Controller
     //
     public function register(Request $request)
     {
+
         $validationRules = [
             'username' => 'required|string|max:255|unique:users',
             'email' => 'required|string|email|max:255|unique:users',
+            'first_name' => 'required',
+            'last_name' => 'required',
+            'location' => 'required',
             'password' => 'required|string',
             'name' => 'required|string|max:255',
             'species' => 'required|string|max:255',
             'gender' => 'required|string|max:255',
             'breed' => 'required|string|max:255',
-            'image' => 'required|string|max:255',
             'age' => 'required|integer',
+            // 'filename' => 'required|string',
+            // 'image' => 'required|string'
         ];
+        $imageData = $request->input('image');
+        $imageName = $request->input('filename');
+
+        $decodedImage = base64_decode($imageData);
+        Storage::disk('public')->put($imageName, $decodedImage);
 
         // Validate the request data
         $validator = Validator::make($request->all(), $validationRules);
@@ -48,23 +59,10 @@ class AuthController extends Controller
 
         }
 
-        if ($request->hasFile('image')) {
-            $petImage = $request->file('image');
-            $petImagePath = $petImage->store('pet_images', 'public');
-        }
 
-        // Create Pet
-        // $pet = DB::table('Pets')->insertGetId([
-        //     'name' => $validationRules['pet_name'],
-        //     'species' => $validationRules['pet_species'],
-        //     'gender' => $validationRules['pet_gender'],
-        //     'age' => $validationRules['pet_age'],
-        //     'pet_image' => $petImagePath,
-        //     'owner_id' => $user,
-        // ]);
 
         // Retrieve user data from the request
-        $userData = $request->only('username', 'email', 'password');
+        $userData = $request->only('username', 'email', 'password', 'first_name', 'last_name', 'location');
 
         // Retrieve pet data from the request
         $petData = $request->only('name', 'species', 'gender', 'age', "breed");
@@ -76,7 +74,7 @@ class AuthController extends Controller
         $userId = DB::table('users')->insertGetId($userData);
 
         // Insert pet data into the Pets table
-        $petData['pet_image'] = $petImagePath;
+        $petData['pet_image'] = $imageName;
         $petData['owner_id'] = $userId;
 
         DB::table('pets')->insert($petData);
@@ -127,10 +125,5 @@ class AuthController extends Controller
                 ],
             ]);
         }
-
-        // Invalid login credentials
-        // throw ValidationException::withMessages([
-        //     'username' => ['The provided credentials are incorrect.'],
-        // ]);
     }
 }

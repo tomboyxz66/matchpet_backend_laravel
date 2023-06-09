@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\Response;
 
 class PetController extends Controller
 {
@@ -27,10 +29,12 @@ class PetController extends Controller
                 ],
             ]);
         }
+
         $user_id = $request->input('user_id');
 
         $pets = DB::table('pets')->where('owner_id', $user_id)->get();
-        $count = DB::table('pets')->where('owner_id', $user_id)->count();
+        $count = $pets->count();
+
         if ($count == 0) {
             return response()->json([
                 'status' => true,
@@ -39,11 +43,31 @@ class PetController extends Controller
                 ],
             ]);
         }
+
+        $petImages = [];
+
+        foreach ($pets as $pet) {
+            $imageName = $pet->pet_image;
+            $imageUrl = asset('storage/' . $imageName); // สร้าง URL สำหรับแสดงรูปภาพจากโฟลเดอร์ public
+
+
+            $petData[] = [
+
+                'pet_id' => $pet->pet_id,
+                'name' => $pet->name,
+                'species' => $pet->species,
+                'breed' => $pet->breed,
+                'gender' => $pet->gender,
+                'age' => $pet->age,
+                'owner_id' => $pet->owner_id,
+                'pet_image' => $imageUrl,
+            ];
+        }
+
         return response()->json([
             'status' => true,
-            'data' => $pets,
+            'data' => $petData,
         ]);
-
     }
     public function getAllPets(Request $request)
     {
@@ -65,30 +89,41 @@ class PetController extends Controller
         if ($gender) {
             $petsQuery->where('gender', "!=", $gender);
         }
+
         if ($species) {
             $petsQuery->where('species', $species);
         }
 
         $pets = $petsQuery->get();
 
+        $petData = [];
+
         foreach ($pets as $pet) {
             $matched = DB::table('Matches')
                 ->where('pet2_id', $pet->pet_id)
-                // ->orWhere('pet2_id', $pet->pet_id)
-                // ->where('is_checked',false)
-                // ->where('match_status','Accepted')
-                // ->where('pet2_id', "!=", $petId)
                 ->exists();
 
-            $pet->is_matched = $matched;
+            if (!$matched) {
+                $imageName = $pet->pet_image;
+                $imageUrl = asset('storage/' . $imageName);
+                $petData[] = [
+                    'pet_id' => $pet->pet_id,
+                    'name' => $pet->name,
+                    'species' => $pet->species,
+                    'breed' => $pet->breed,
+                    'gender' => $pet->gender,
+                    'age' => $pet->age,
+                    'owner_id' => $pet->owner_id,
+                    'is_matched' => $matched,
+                    'pet_image' => $imageUrl,
+                ];
+            }
         }
-        $data = $pets->where('is_matched', '!=', true);
 
         return response()->json([
             'status' => 'success',
             'message' => 'All pets',
-            'data' => $data->values(),
-
+            'data' => $petData,
         ], 200);
     }
 
@@ -98,22 +133,23 @@ class PetController extends Controller
             'name' => 'required',
             'species' => 'required',
             'gender' => 'required',
+            'breed' => 'required',
             'age' => 'required|integer',
-            'pet_image' => 'required|image|max:2048',
             'owner_id' => 'required|integer',
 
         ]);
-        if ($request->hasFile('pet_image')) {
-            $petImage = $request->file('pet_image');
-            $petImagePath = $petImage->store('pet_images', 'public');
-        }
+        $imageData = $request->input('image');
+        $imageName = $request->input('filename');
+        $decodedImage = base64_decode($imageData);
+        Storage::disk('public')->put($imageName, $decodedImage);
 
         $pet = DB::table('Pets')->insertGetId([
             'name' => $validatedData['name'],
             'species' => $validatedData['species'],
             'gender' => $validatedData['gender'],
+            'breed' => $validatedData['breed'],
             'age' => $validatedData['age'],
-            'pet_image' => $petImagePath,
+            'pet_image' => $imageName,
             'owner_id' => $validatedData['owner_id'],
         ]);
 
@@ -140,38 +176,6 @@ class PetController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Pet deleted successfully',
-        ], 200);
-    }
-    public function uploadPetImage(Request $request)
-    {
-        $petId = $request->input('pet_id');
-        $validatedData = $request->validate([
-            'image' => 'required|image|max:2048',
-        ]);
-
-        $pet = DB::table('Pets')->where('pet_id', $petId)->first();
-        $validatedData = $request->validate([
-            'image' => 'required|image|max:2048',
-        ]);
-
-        if (!$pet) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Pet not found',
-            ], 404);
-        }
-
-        if ($request->hasFile('image')) {
-            $image = $request->file('image');
-            $imagePath = $image->store('pet_images', 'public');
-
-            $pet->image_path = $imagePath;
-            $pet->save();
-        }
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Pet image uploaded successfully',
         ], 200);
     }
 
